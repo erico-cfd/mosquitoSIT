@@ -1,0 +1,21 @@
+Package: mosquitoSIT
+Title: Bayesian Inference for Mosquito Diffusion-Capture Models (SIT)
+Version: 0.1.0
+Authors@R: person("Erico", "Souza", role = c("aut", "cre"),
+                  email = "erico.souza@student.centralesupelec.fr")
+Description: Fits a 2D diffusion-reaction PDE model to mosquito trap capture
+    data using Bayesian inference via Stan (HMC/NUTS). Infers diffusion
+    coefficient (D), mortality rate (LAMBDA), and trap capture rate (GAMMA).
+    Designed for Sterile Insect Technique (SIT) studies.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.1
+Depends:
+    R (>= 4.1.0)
+Imports:
+    cmdstanr
+Suggests:
+    posterior,
+    bayesplot
+Additional_repositories: https://mc-stan.org/r-packages/
