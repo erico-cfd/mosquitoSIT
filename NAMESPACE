@@ -2,5 +2,3 @@
 
 export(run_mosquito_inference)
 export(prepare_stan_data)
-
-LazyData: true
