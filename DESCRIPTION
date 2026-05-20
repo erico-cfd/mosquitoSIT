@@ -18,5 +18,4 @@ Imports:
 Suggests:
     posterior,
     bayesplot
-LazyData: true
 Additional_repositories: https://mc-stan.org/r-packages/
