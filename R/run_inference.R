@@ -87,8 +87,8 @@ prepare_stan_data <- function(
 #'
 #' @export
 run_mosquito_inference <- function(
-    captures        = mosquito_captures,
-    trap_positions  = mosquito_trap_positions,
+    captures        = NULL,
+    trap_positions  = NULL,
     N_grid          = 61L,
     dt              = 0.08,
     X_0             = 0.0,
@@ -104,6 +104,9 @@ run_mosquito_inference <- function(
     output_dir      = ".",
     force_recompile = FALSE
 ) {
+  if (is.null(captures))       captures       <- get("mosquito_captures",        envir = asNamespace("mosquitoSIT"))
+  if (is.null(trap_positions)) trap_positions <- get("mosquito_trap_positions",  envir = asNamespace("mosquitoSIT"))
+
   stan_file <- system.file("stan", "mosquito_diffusion.stan", package = "mosquitoSIT")
   if (!nzchar(stan_file)) stop("Stan model file not found inside the mosquitoSIT package.")
 
