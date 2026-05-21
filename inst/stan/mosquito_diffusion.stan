@@ -167,22 +167,30 @@ transformed data {
 }
 
 parameters {
-    real<lower=10, upper=500> D;
-    real<lower=0.01, upper=1> LAMBDA;
-    real<lower=0.15, upper=5> GAMMA;
+    // Sampling on the log scale: unconstrained reals, positivity guaranteed
+    // by exponentiation. No hard bounds needed.
+    real log_D;
+    real log_LAMBDA;
+    real log_GAMMA;
 }
 
 transformed parameters {
+    real D      = exp(log_D);
+    real LAMBDA = exp(log_LAMBDA);
+    real GAMMA  = exp(log_GAMMA);
+
     matrix[P, T] CAPTURES_SIM = solve_edp(D, GAMMA, LAMBDA, R_PIEGE,
-                                           steps, T, N, P, dt, dx, 
+                                           steps, T, N, P, dt, dx,
                                            h_initial, DIST_CARRE,
                                            TRAP_MASK);
 }
 
 model {
-    D ~ normal(300  , 75);
-    LAMBDA ~ normal(0.2, 0.1);
-    GAMMA ~ normal(0.8, 0.4);
+    // Priors on the log scale (equivalent to log-normal priors on D, LAMBDA, GAMMA).
+    // Centered at log of our prior beliefs: D~300, LAMBDA~0.2, GAMMA~0.8
+    log_D      ~ normal(log(300), 0.5);
+    log_LAMBDA ~ normal(log(0.2), 0.5);
+    log_GAMMA  ~ normal(log(0.8), 0.5);
 
     vector[T * P] vetor_capturas_simuladas;
     {
