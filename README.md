@@ -61,10 +61,10 @@ fit$summary(c("D", "LAMBDA", "GAMMA", "R_PIEGE"))
 Expected output (values will vary):
 ```
   variable    mean  median    sd   mad     q5    q95  rhat ess_bulk ess_tail
-  D          285.3   287.1  41.2  39.8  214.6  351.0  1.00      134      121
-  LAMBDA       0.18    0.18  0.07   0.07   0.08   0.30  1.00      145      130
-  GAMMA        0.72    0.71  0.28   0.27   0.32   1.22  1.00      138      118
-  R_PIEGE      4.81    4.75  0.94   0.91   3.42   6.53  1.00      138      118
+  D          157    157       4.98 39.8  149.6     165  1.01      134      121
+  LAMBDA       0.215    0.215  0.07   0.07   0.08   0.30  1.00      145      130
+  GAMMA        0.152    0.151  0.28   0.27   0.32   1.22  1.00      138      118
+  R_PIEGE      7.76    7.78  0.94   0.91   3.42   6.53  1.00      138      118
 ```
 
 - **`mean` / `median`** — posterior estimate of the parameter
