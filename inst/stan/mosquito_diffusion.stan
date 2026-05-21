@@ -106,6 +106,11 @@ data {
     real Y_0;
     real<lower=0> R0;
     real<lower=1> n_initial;
+
+    // R_PIEGE is fixed by the user instead of being derived from GAMMA.
+    // This removes the perfect collinearity between GAMMA and R_PIEGE
+    // (they shared only one degree of freedom). A typical value is 1.0 m.
+    real<lower=0> R_PIEGE;
 }
 
 transformed data { 
@@ -168,9 +173,7 @@ parameters {
 }
 
 transformed parameters {
-    real R_PIEGE = sqrt(25.0 / log(GAMMA / 0.1));
-    
-    matrix[P, T] CAPTURES_SIM = solve_edp(D, GAMMA, LAMBDA, R_PIEGE, 
+    matrix[P, T] CAPTURES_SIM = solve_edp(D, GAMMA, LAMBDA, R_PIEGE,
                                            steps, T, N, P, dt, dx, 
                                            h_initial, DIST_CARRE,
                                            TRAP_MASK);
