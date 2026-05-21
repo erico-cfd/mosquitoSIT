@@ -7,6 +7,7 @@
 #' @param X_0,Y_0 Initial release position in metres. Default `(0, 0)`.
 #' @param R0 Radius (m) of the initial Gaussian mosquito density. Default 5.
 #' @param n_initial Total initial mosquito count. Default 50 000.
+#' @param r_piege Fixed trap radius (m). Default 1.0.
 #'
 #' @return A named list ready to pass to `cmdstanr`.
 #' @export
@@ -18,7 +19,8 @@ prepare_stan_data <- function(
     X_0       = 0.0,
     Y_0       = 0.0,
     R0        = 5.0,
-    n_initial = 50000
+    n_initial = 50000,
+    r_piege   = 1.0
 ) {
   stopifnot(is.matrix(captures), is.integer(captures))
   stopifnot(is.matrix(trap_positions), ncol(trap_positions) == 2)
@@ -42,7 +44,8 @@ prepare_stan_data <- function(
     X_0        = X_0,
     Y_0        = Y_0,
     R0         = R0,
-    n_initial  = n_initial
+    n_initial  = n_initial,
+    R_PIEGE    = r_piege
   )
 }
 
@@ -95,6 +98,7 @@ run_mosquito_inference <- function(
     Y_0             = 0.0,
     R0              = 5.0,
     n_initial       = 50000,
+    r_piege         = 1.0,
     chains          = 1L,
     parallel_chains = 1L,
     iter_warmup     = 150L,
@@ -128,7 +132,8 @@ run_mosquito_inference <- function(
     X_0            = X_0,
     Y_0            = Y_0,
     R0             = R0,
-    n_initial      = n_initial
+    n_initial      = n_initial,
+    r_piege        = r_piege
   )
 
   mod$sample(
