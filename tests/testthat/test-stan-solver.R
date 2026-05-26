@@ -20,12 +20,7 @@ test_that("Stan solver: GAMMA=0 produces zero captures", {
     fixed_param   = TRUE,
     iter_sampling = 1,
     chains        = 1,
-    inits         = list(list(
-      log_D      = log(200),
-      log_LAMBDA = log(0.2),
-      log_GAMMA  = log(0.8)
-    )),
-    refresh = 0
+    refresh       = 0
   )
 
   captures_no_trap <- as.vector(fit$draws("captures_no_trap"))
