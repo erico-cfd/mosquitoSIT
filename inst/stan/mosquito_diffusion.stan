@@ -204,3 +204,14 @@ model {
     }
     vetor_capturas_reais ~ poisson(vetor_capturas_simuladas);
 }
+
+generated quantities {
+    // Run the solver with GAMMA=0 (no traps).
+    // Expected result: all captures are exactly zero.
+    // This tests the Stan solver directly against the known no-trap solution.
+    matrix[P, T] captures_no_trap = solve_edp(
+        D, 0.0, LAMBDA, R_PIEGE,
+        steps, T, N, P, dt, dx,
+        h_initial, DIST_CARRE, TRAP_MASK
+    );
+}
