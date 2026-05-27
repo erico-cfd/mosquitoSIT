@@ -4,10 +4,12 @@ Bayesian inference for mosquito dispersal models in the context of the **Sterile
 
 | Parameter | Meaning | Prior |
 |-----------|---------|-------|
-| `D` | Diffusion coefficient (m²/day) — how fast mosquitoes spread | Normal(300, 75), bounded [10, 500] |
-| `LAMBDA` | Mortality rate (day⁻¹) — daily death probability | Normal(0.2, 0.1), bounded [0.01, 1] |
-| `GAMMA` | Trap capture rate — peak attraction strength of a trap | Normal(0.8, 0.4), bounded [0.15, 5] |
-| `R_PIEGE` | Trap effective radius (m) — derived from `GAMMA` | Derived parameter |
+| `D` | Diffusion coefficient (m²/day) — how fast mosquitoes spread | Log-normal, median 300 |
+| `LAMBDA` | Mortality rate (day⁻¹) — daily death probability | Log-normal, median 0.2 |
+| `GAMMA` | Trap capture rate — peak attraction strength of a trap | Log-normal, median 0.8 |
+| `R_PIEGE` | Trap effective radius (m) — **fixed by the user** | Not estimated |
+
+All three parameters are sampled on the log scale (`log_D`, `log_LAMBDA`, `log_GAMMA`), which removes the need for hard boundaries and improves sampler efficiency. `R_PIEGE` is fixed as a known input rather than estimated, removing a collinearity issue with `GAMMA`.
 
 ---
 
@@ -37,13 +39,13 @@ The package includes the trap positions and daily captures from the reference st
 ```r
 library(mosquitoSIT)
 
-fit <- run_mosquito_inference()
+fit <- run_mosquito_inference(r_piege = 3.5)
 ```
 
 Expected console output during sampling:
 ```
 Grid: N=61, dx=13.3 m, dt=0.080 days, steps=250
-CFL check: dt * 4 * D_max / dx^2 = 0.181  (must be < 1 for stability)
+CFL check: dt * 4 * D_max / dx^2 = 0.900  (must be < 1 for stability)
 Compiling Stan program...
 Running MCMC with 1 chain...
 Chain 1 Iteration:   1 / 300 [  0%]  (Warmup)
@@ -55,16 +57,15 @@ Chain 1 finished in ...s.
 ### Inspect results
 
 ```r
-fit$summary(c("D", "LAMBDA", "GAMMA", "R_PIEGE"))
+fit$summary(c("D", "LAMBDA", "GAMMA"))
 ```
 
 Expected output (values will vary):
 ```
-  variable    mean  median    sd   mad     q5    q95  rhat ess_bulk ess_tail
-  D          157    157       4.98 39.8  149.6     165  1.01      134      121
-  LAMBDA       0.215    0.215  0.07   0.07   0.08   0.30  1.00      145      130
-  GAMMA        0.152    0.151  0.28   0.27   0.32   1.22  1.00      138      118
-  R_PIEGE      7.76    7.78  0.94   0.91   3.42   6.53  1.00      138      118
+  variable  mean  median    sd   mad     q5    q95  rhat ess_bulk ess_tail
+  D        163.   163.   5.62  5.93  154.   172.   0.997     95.0     88.1
+  LAMBDA     0.220  0.221  0.00735 0.00718  0.208  0.231  1.03      81.7     76.2
+  GAMMA      0.783  0.781  0.0348  0.0328   0.731  0.845  1.01      65.6     71.3
 ```
 
 - **`mean` / `median`** — posterior estimate of the parameter
@@ -96,6 +97,7 @@ E-BFMI satisfactory for all chains.
 |----------|------|-------|-------------|
 | `captures` | integer matrix | `[T × P]` | Daily captures: rows = days, columns = traps |
 | `trap_positions` | numeric matrix | `[P × 2]` | Trap (x, y) coordinates in metres from release point |
+| `r_piege` | numeric | scalar | Fixed trap effective radius in metres |
 
 ```r
 # Example: 10 days, 5 traps
@@ -122,7 +124,8 @@ my_traps <- matrix(c(
 
 fit <- run_mosquito_inference(
   captures       = my_captures,
-  trap_positions = my_traps
+  trap_positions = my_traps,
+  r_piege        = 3.5
 )
 ```
 
@@ -130,12 +133,13 @@ fit <- run_mosquito_inference(
 
 ```r
 fit <- run_mosquito_inference(
+  r_piege         = 3.5,
   chains          = 4,     # run 4 independent chains (better convergence check)
   parallel_chains = 4,     # run them in parallel
   iter_warmup     = 500,   # more warmup for difficult posteriors
   iter_sampling   = 500,
   adapt_delta     = 0.95,  # increase if you get divergent transitions
-  output_dir      = "results/"  # save Stan CSV files to a folder
+  output_dir      = "results/"
 )
 ```
 
@@ -147,6 +151,7 @@ If you want to inspect or modify the Stan data list before sampling:
 stan_data <- prepare_stan_data(
   captures       = my_captures,
   trap_positions = my_traps,
+  r_piege        = 3.5,
   N_grid         = 61,
   dt             = 0.08
 )
@@ -159,6 +164,7 @@ str(stan_data)
 
 | Argument | Default | Effect |
 |----------|---------|--------|
+| `r_piege` | 1.0 | Fixed trap effective radius (m) — recommended: 3.5 |
 | `N_grid` | 61 | Grid resolution (61 × 61 nodes over 800 m × 800 m) |
 | `dt` | 0.08 | PDE time step in days — smaller = more accurate but slower |
 | `X_0`, `Y_0` | 0, 0 | Release point coordinates (m) |
