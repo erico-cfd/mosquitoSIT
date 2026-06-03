@@ -19,6 +19,7 @@ You need R (≥ 4.1) and a working Stan installation.
 
 **Step 1 — Install Stan (once)**
 ```r
+R # Enter R
 install.packages("cmdstanr", repos = "https://mc-stan.org/r-packages/")
 cmdstanr::install_cmdstan()
 ```
