@@ -92,11 +92,22 @@ functions {  // This is the edp solver
     }
 }
 
-data { 
-    int<lower=1> T;
-    int<lower=1> P;
-    array[T, P] int CAPTURES;
+data {
+    int<lower=1> T;                          // total number of simulated days
+    int<lower=1> P;                          // number of traps
     array[P] vector[2] POS_PIEGES;
+
+    // --- Irregular cumulative observations ---------------------------------
+    // Each record k is one collection event: over the days
+    // obs_start[k] .. obs_end[k] (inclusive), trap obs_trap[k] accumulated
+    // obs_count[k] new mosquitoes. This supports arbitrary, per-trap
+    // observation schedules ("holes" in the data). Daily observation is just
+    // the special case where every interval has length 1.
+    int<lower=1> N_obs;
+    array[N_obs] int<lower=1> obs_trap;
+    array[N_obs] int<lower=1> obs_start;
+    array[N_obs] int<lower=1> obs_end;
+    array[N_obs] int<lower=0> obs_count;
 
     int<lower=2> N;
     int<lower=1> steps;
@@ -153,17 +164,6 @@ transformed data {
             }
         }
     }
-
-    array[T * P] int vetor_capturas_reais;
-    {
-        int idx_data = 1;
-        for (t in 1:T) {
-            for (p in 1:P) {
-                vetor_capturas_reais[idx_data] = CAPTURES[t, p];
-                idx_data += 1;
-            }
-        }
-    }
 }
 
 parameters {
@@ -192,15 +192,15 @@ model {
     log_LAMBDA ~ normal(log(0.2), 0.5);
     log_GAMMA  ~ normal(log(0.8), 0.5);
 
-    vector[T * P] vetor_capturas_simuladas;
-    {
-        int indice = 1;
-        for (t in 1:T) {
-            for (p in 1:P) {
-                vetor_capturas_simuladas[indice] = fmax(1e-6, CAPTURES_SIM[p, t]); 
-                indice += 1;
-            }
+    // Likelihood over irregular cumulative intervals.
+    // The expected count over an interval is the sum of the daily expected
+    // captures inside it. A sum of independent Poisson counts is Poisson with
+    // the summed rate, so the cumulative increment is Poisson(sum of rates).
+    for (k in 1:N_obs) {
+        real rate = 0;
+        for (t in obs_start[k]:obs_end[k]) {
+            rate += CAPTURES_SIM[obs_trap[k], t];
         }
+        obs_count[k] ~ poisson(fmax(1e-6, rate));
     }
-    vetor_capturas_reais ~ poisson(vetor_capturas_simuladas);
 }

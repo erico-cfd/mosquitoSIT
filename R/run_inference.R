@@ -27,19 +27,73 @@ prepare_stan_data <- function(
 
   T_days <- nrow(captures)
   P      <- ncol(captures)
-  steps  <- as.integer(T_days / dt)
 
   if (nrow(trap_positions) != P) {
     stop("`trap_positions` must have one row per trap (", P, " traps detected in `captures`).")
   }
 
+  # Daily observation is the special case of irregular intervals where every
+  # day is its own length-1 interval.
+  obs <- .daily_to_obs(captures)
+
+  .assemble_stan_data(
+    obs            = obs,
+    T_days         = T_days,
+    trap_positions = trap_positions,
+    N_grid         = N_grid,
+    dt             = dt,
+    X_0            = X_0,
+    Y_0            = Y_0,
+    R0             = R0,
+    n_initial      = n_initial,
+    r_piege        = r_piege
+  )
+}
+
+
+# Convert a dense daily-capture matrix [T x P] into per-day interval records
+# (each day is a length-1 interval). Internal helper.
+.daily_to_obs <- function(captures) {
+  T_days <- nrow(captures)
+  P      <- ncol(captures)
+  N_obs  <- T_days * P
+
+  obs_trap  <- integer(N_obs)
+  obs_start <- integer(N_obs)
+  obs_end   <- integer(N_obs)
+  obs_count <- integer(N_obs)
+
+  idx <- 1L
+  for (p in seq_len(P)) {
+    for (t in seq_len(T_days)) {
+      obs_trap[idx]  <- p
+      obs_start[idx] <- t
+      obs_end[idx]   <- t
+      obs_count[idx] <- captures[t, p]
+      idx <- idx + 1L
+    }
+  }
+
+  list(N_obs = N_obs, obs_trap = obs_trap, obs_start = obs_start,
+       obs_end = obs_end, obs_count = obs_count)
+}
+
+
+# Assemble the final Stan data list shared by the daily and irregular paths.
+# Internal helper.
+.assemble_stan_data <- function(obs, T_days, trap_positions, N_grid, dt,
+                                X_0, Y_0, R0, n_initial, r_piege) {
   list(
-    T          = T_days,
-    P          = P,
-    CAPTURES   = captures,
+    T          = as.integer(T_days),
+    P          = nrow(trap_positions),
     POS_PIEGES = trap_positions,
+    N_obs      = obs$N_obs,
+    obs_trap   = as.integer(obs$obs_trap),
+    obs_start  = as.integer(obs$obs_start),
+    obs_end    = as.integer(obs$obs_end),
+    obs_count  = as.integer(obs$obs_count),
     N          = as.integer(N_grid),
-    steps      = steps,
+    steps      = as.integer(T_days / dt),
     dt         = dt,
     X_0        = X_0,
     Y_0        = Y_0,
