@@ -75,7 +75,11 @@ plot_prior_posterior <- function(fit, path = "prior_posterior.pdf", r_piege = 3.
   pdf(path, width = 10, height = 4)
   on.exit(dev.off())
 
-  old_par <- par(mfrow = c(1, 3), mar = c(4, 4, 3, 1))
+  # Reserve an outer top margin (oma) for the overall title so it sits
+  # ABOVE the individual panel titles instead of overlapping them.
+  old_par <- par(mfrow = c(1, 3),
+                 mar = c(4, 4, 2.5, 1),
+                 oma = c(0, 0, 3, 0))
   on.exit(par(old_par), add = TRUE)
 
   for (nm in names(params)) {
@@ -106,7 +110,7 @@ plot_prior_posterior <- function(fit, path = "prior_posterior.pdf", r_piege = 3.
   }
 
   mtext(paste0("R_PIEGE fixed at ", r_piege, " m"),
-        side = 3, line = -1.5, outer = TRUE, cex = 0.85)
+        side = 3, line = 0.5, outer = TRUE, cex = 1, font = 2)
 
   message("Plot saved to: ", path)
   invisible(path)

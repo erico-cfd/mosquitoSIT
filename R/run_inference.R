@@ -136,7 +136,7 @@ run_mosquito_inference <- function(
     r_piege        = r_piege
   )
 
-  mod$sample(
+  fit <- mod$sample(
     data            = stan_data,
     chains          = chains,
     parallel_chains = parallel_chains,
@@ -146,4 +146,38 @@ run_mosquito_inference <- function(
     max_treedepth   = max_treedepth,
     output_dir      = output_dir
   )
+
+  # Always show the parameter summary, including the fixed R_PIEGE,
+  # regardless of what the user does with the returned object afterwards.
+  print_inference_summary(fit, r_piege = r_piege)
+
+  fit
+}
+
+
+#' Print the inference summary table including the fixed R_PIEGE
+#'
+#' Prints the posterior summary for the sampled parameters (`D`, `LAMBDA`,
+#' `GAMMA`) and appends a row for `R_PIEGE`, which is fixed rather than
+#' estimated. Useful to re-display the table after generating plots.
+#'
+#' @param fit A `CmdStanMCMC` object from [run_mosquito_inference()].
+#' @param r_piege The fixed trap radius (m) used during inference.
+#'
+#' @return Invisibly returns the printed summary tibble.
+#' @export
+print_inference_summary <- function(fit, r_piege = 3.5) {
+  s <- fit$summary(c("D", "LAMBDA", "GAMMA"))
+
+  # Build a row for the fixed R_PIEGE: same columns, stats that do not
+  # apply (sd, rhat, ess, ...) left as NA, value placed in mean and median.
+  extra <- s[1, ]
+  for (col in names(extra)) extra[[col]][1] <- NA
+  extra$variable[1] <- "R_PIEGE"
+  extra$mean[1]     <- r_piege
+  extra$median[1]   <- r_piege
+
+  s <- rbind(s, extra)
+  print(s, width = Inf)
+  invisible(s)
 }

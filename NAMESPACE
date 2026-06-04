@@ -2,5 +2,6 @@
 
 export(run_mosquito_inference)
 export(prepare_stan_data)
+export(print_inference_summary)
 export(save_data_csv)
 export(plot_prior_posterior)
