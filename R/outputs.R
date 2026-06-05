@@ -57,18 +57,20 @@ plot_prior_posterior <- function(fit, path = "prior_posterior.pdf", r_piege = 3.
 
   draws <- fit$draws(c("D", "LAMBDA", "GAMMA"), format = "matrix")
 
+  # Use plotmath expressions so the superscripts render correctly in the PDF
+  # (raw Unicode "²"/"⁻¹" do not render in R's default pdf device).
   params <- list(
     D      = list(samples   = draws[, "D"],
                   prior_fun = function(x) dlnorm(x, meanlog = log(300), sdlog = 0.5),
-                  xlab      = "D  (m²/day)",
+                  xlab      = expression(D ~ (m^2 / day)),
                   xlim      = c(0, 600)),
     LAMBDA = list(samples   = draws[, "LAMBDA"],
                   prior_fun = function(x) dlnorm(x, meanlog = log(0.2), sdlog = 0.5),
-                  xlab      = "LAMBDA  (day⁻¹)",
+                  xlab      = expression(LAMBDA ~ (day^-1)),
                   xlim      = c(0, 0.6)),
     GAMMA  = list(samples   = draws[, "GAMMA"],
                   prior_fun = function(x) dlnorm(x, meanlog = log(0.8), sdlog = 0.5),
-                  xlab      = "GAMMA",
+                  xlab      = expression(GAMMA ~ (day^-1)),
                   xlim      = c(0, 4))
   )
 
